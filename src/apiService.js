@@ -16,6 +16,7 @@ export default class PixabayApiService {
         return hits;
       });
   }
+
   incrementPage() {
     this.page += 1;
   }
