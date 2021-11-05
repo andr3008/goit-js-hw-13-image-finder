@@ -1,29 +1,26 @@
+import './sass/main.scss';
+
 import '@pnotify/core/dist/BrightTheme.css';
 const { error } = require('@pnotify/core');
 
-import './sass/main.scss';
+import * as basicLightbox from 'basiclightbox';
+import 'basiclightbox/dist/basicLightbox.min.css';
+
+import imgTemp from './templates/imgTemp.hbs';
+import getRefs from './get-refs';
+const refs = getRefs();
+
 import PixabayApiService from './apiService';
-import hitsTemp from './templates/hitsTemp.hbs';
-// import LoadMoreBtn from './loadMoreBtn';
-const refs = {
-  searchForm: document.querySelector('.search-form'),
-  galleryList: document.querySelector('.gallery'),
-  loadMore: document.querySelector('[data-action="load-more"]'),
-};
-// const loadMoreBtn = new LoadMoreBtn({
-//   selector: '[data-action="load-more"]',
-//   hidden: true,
-// });
 const pixabayApiService = new PixabayApiService();
 
-// console.log(loadMoreBtn);
-// refs.searchForm.addEventListener('submit', scrollInto);
 refs.searchForm.addEventListener('submit', onSearch);
 refs.loadMore.addEventListener('click', onLoadMore);
-// refs.scroll.addEventListener('click', scrollInto);
+refs.galleryList.addEventListener('click', openLargeImage);
 refs.loadMore.style.display = 'none';
+
 function onSearch(e) {
   e.preventDefault();
+  refs.galleryList.innerHTML = '';
 
   pixabayApiService.query = e.currentTarget.elements.query.value;
   if (pixabayApiService.query === '') {
@@ -35,15 +32,15 @@ function onSearch(e) {
 
   clearHitsContainer();
   pixabayApiService.resetPage();
-  pixabayApiService.fetchPhotos().then(appendHitsMarkup);
+  pixabayApiService.fetchPhotos().then(appendImgMarkup);
 }
 function onLoadMore() {
-  pixabayApiService.fetchPhotos().then(appendHitsMarkup);
+  pixabayApiService.fetchPhotos().then(appendImgMarkup);
 }
 
-function appendHitsMarkup(hits) {
+function appendImgMarkup(image) {
   refs.loadMore.style.display = 'block';
-  refs.galleryList.insertAdjacentHTML('beforeend', hitsTemp(hits));
+  refs.galleryList.insertAdjacentHTML('beforeend', imgTemp(image));
   scrollInto();
 }
 function clearHitsContainer() {
@@ -54,4 +51,12 @@ function scrollInto() {
     behavior: 'smooth',
     block: 'end',
   });
+}
+
+function openLargeImage(e) {
+  if (!e.target.dataset.source) {
+    return;
+  }
+  const instance = basicLightbox.create(`<img src="${e.target.dataset.source}" />`);
+  instance.show();
 }
